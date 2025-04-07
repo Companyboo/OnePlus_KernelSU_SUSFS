@@ -124,6 +124,26 @@ jobs:
       manifest: "oneplus_10_pro_v.xml"
       android_version: "android12"
       kernel_version: "5.10"
+  build-kernel-op13:
+     uses: ./.github/workflows/build.yml
+     secrets: inherit
+     with:
+      model: "OP13"
+      soc: "sun perf"
+      branch: "oneplus/sm8750"
+      manifest: "JiuGeFaCai_oneplus_13_v.xml"
+      android_version: "android15"
+      kernel_version: "6.6"
+  build-kernel-opAce5pro:
+     uses: ./.github/workflows/build.yml
+     secrets: inherit
+     with:
+      model: "OPAce_5pro"
+      soc: "sun perf"
+      branch: "oneplus/sm8750"
+      manifest: "JiuGeFaCai_oneplus_ace5_pro_v.xml"
+      android_version: "android15"
+      kernel_version: "6.6"
 
   trigger-release:
     runs-on: ubuntu-latest
@@ -139,6 +159,8 @@ jobs:
         - build-kernel-opace5
         - build-kernel-op10t
         - build-kernel-op10pro
+        - build-kernel-op13
+        - build-kernel-opAce5pro
     if: ${{ inputs.make_release }}
     env:
       REPO_OWNER: TheWildJames
