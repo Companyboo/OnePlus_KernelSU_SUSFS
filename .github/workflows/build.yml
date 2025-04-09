@@ -92,11 +92,13 @@ jobs:
           cd "$CONFIG/kernel_platform"
           
           echo "Adding KernelSU..."
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
-          #cd ./KernelSU-Next/kernel
-          #sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=12000/' ./Makefile
-          KSU_VERSION=$(cd ./KernelSU-Next/kernel && git describe --tags --abbrev=0)
-          echo "KSUVER=${KSU_VERSION}" >> $GITHUB_ENV
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+          
+          git submodule update --init --recursive
+          cd KernelSU-Next/kernel
+          KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
+          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+          sed -i "s/DKSU_VERSION=11998/DKSU_VERSION=${KSU_VERSION}/" Makefile
 
       - name: Apply SUSFS Patches
         run: |
@@ -109,7 +111,7 @@ jobs:
           cp ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch ./common/
           cp ../../susfs4ksu/kernel_patches/fs/* ./common/fs/
           cp ../../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-
+          
           cd ./KernelSU-Next
           
           echo "Applying next SUSFS patches..."
@@ -118,6 +120,9 @@ jobs:
           
           # Change to common directory and apply SUSFS patch
           cd ../common
+          if [ "${{ inputs.soc }}" == "sun" ]; then
+            sed -i '/#include <trace\/hooks\/blk.h>/a #include <trace/hooks/fs.h>' ./fs/namespace.c
+          fi
           patch -p1 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
       - name: Apply KSU Hooks
@@ -175,6 +180,10 @@ jobs:
           cd "$CONFIG/kernel_platform"
           
           echo "Running sed commands..."
+
+          sed -i 's/CONFIG_LTO=n/CONFIG_LTO=y/' "./common/arch/arm64/configs/gki_defconfig"
+          sed -i 's/CONFIG_LTO_CLANG_FULL=y/CONFIG_LTO_CLANG_THIN=y/' "./common/arch/arm64/configs/gki_defconfig"
+          sed -i 's/CONFIG_LTO_CLANG_NONE=y/CONFIG_LTO_CLANG_THIN=y/' "./common/arch/arm64/configs/gki_defconfig"
           
           # Run sed commands for modifications
           sed -i 's/check_defconfig//' ./common/build.config.gki
@@ -201,8 +210,47 @@ jobs:
           
           echo "Building the kernel..."
           rm ./kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
-          rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"                 
-            ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} gki          
+          rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+          #git config --global user.email "bins4us@hotmail.com"
+          #git config --global user.name "TheWildJames"
+          #git add *
+          #git commit -s -a -m "getting rid of -dirty"
+          
+          BUILD_TYPE="gki"
+          BAZEL_ARGS=(--jobs=$(nproc --all) --verbose_failures --lto=thin --sandbox_debug --verbose_failures --subcommands)
+          if [ "${{ inputs.soc }}" == "sun" ]; then
+            BUILD_TYPE="perf"
+            BAZEL_ARGS+=(-g)
+          fi
+          
+          (stdbuf -oL bash -c '
+            while true; do
+              echo "=== $(date) ==="
+              free -h
+              echo "======"
+              df -h
+              echo "======"
+              top -b -n 1 | head -n 15
+              echo ""
+              sleep 60
+            done
+          ') &
+          MONITOR_PID=$!
+          trap "kill $MONITOR_PID" EXIT
+          
+          bash -c '
+            while true; do
+              sync; echo 3 > /proc/sys/vm/drop_caches
+              sleep 120
+            done
+          ' >/dev/null 2>&1 &
+          
+          if [ -f ./kernel_platform/build_with_bazel.py ]; then
+            ./kernel_platform/oplus/bazel/oplus_modules_variant.sh ${{ inputs.soc }} "$BUILD_TYPE" ""
+            ./kernel_platform/build_with_bazel.py -t ${{ inputs.soc }} $BUILD_TYPE "${BAZEL_ARGS[@]}" -o "$(pwd)/out"
+          else
+            LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} "$BUILD_TYPE"
+          fi
 
       - name: Copy Images
         run: |
