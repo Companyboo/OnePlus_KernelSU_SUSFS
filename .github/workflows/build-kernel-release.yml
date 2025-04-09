@@ -13,23 +13,139 @@ on:
         type: boolean
         default: true
 
-jobs:  
+jobs:
+  build-kernel-op11:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP11"
+      soc: "kalama"
+      branch: "oneplus/sm8550"
+      manifest: "oneplus_11_v.xml"
+      android_version: "android13"
+      kernel_version: "5.15"
+  build-kernel-op11r:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP11r"
+      soc: "waipio"
+      branch: "oneplus/sm8475"
+      manifest: "oneplus_11r_v.xml"
+      android_version: "android13"
+      kernel_version: "5.10"
+  build-kernel-opopen:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP-OPEN"
+      soc: "kalama"
+      branch: "oneplus/sm8550"
+      manifest: "oneplus_open_v.xml"
+      android_version: "android13"
+      kernel_version: "5.15"
+  build-kernel-opace2:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP-ACE-2"
+      soc: "waipio"
+      branch: "oneplus/sm8475"
+      manifest: "oneplus_ace2_v.xml"
+      android_version: "android13"
+      kernel_version: "5.10"
+  build-kernel-op10t:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP10t"
+      soc: "waipio"
+      branch: "oneplus/sm8475"
+      manifest: "oneplus_10t_v.xml"
+      android_version: "android12"
+      kernel_version: "5.10"
+  build-kernel-op10pro:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP10pro"
+      soc: "waipio"
+      branch: "oneplus/sm8450"
+      manifest: "oneplus_10_pro_v.xml"
+      android_version: "android12"
+      kernel_version: "5.10"
+  build-kernel-opace2pro:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP-ACE-2-PRO"
+      soc: "kalama"
+      branch: "oneplus/sm8550"
+      manifest: "oneplus_ace2pro_v.xml"
+      android_version: "android13"
+      kernel_version: "5.15"
+  build-kernel-op12:
+    needs: [build-kernel-op11, build-kernel-op11r, build-kernel-opopen, build-kernel-opace2, build-kernel-op10t, build-kernel-op10pro, build-kernel-opace2pro]
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP12"
+      soc: "pineapple"
+      branch: "oneplus/sm8650"
+      manifest: "oneplus12_v.xml"
+      android_version: "android14"
+      kernel_version: "6.1"
+  build-kernel-op13r:
+    needs: [build-kernel-op11, build-kernel-op11r, build-kernel-opopen, build-kernel-opace2, build-kernel-op10t, build-kernel-op10pro, build-kernel-opace2pro]
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP13r"
+      soc: "pineapple"
+      branch: "oneplus/sm8650"
+      manifest: "oneplus_13r.xml"
+      android_version: "android14"
+      kernel_version: "6.1"
+  build-kernel-opnord4:
+    needs: [build-kernel-op11, build-kernel-op11r, build-kernel-opopen, build-kernel-opace2, build-kernel-op10t, build-kernel-op10pro, build-kernel-opace2pro]
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP-NORD-4"
+      soc: "pineapple"
+      branch: "oneplus/sm7675"
+      manifest: "oneplus_nord_4_v.xml"
+      android_version: "android14"
+      kernel_version: "6.1"
+  build-kernel-opace5:
+    needs: [build-kernel-op11, build-kernel-op11r, build-kernel-opopen, build-kernel-opace2, build-kernel-op10t, build-kernel-op10pro, build-kernel-opace2pro]
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OP-ACE-5"
+      soc: "pineapple"
+      branch: "oneplus/sm8650"
+      manifest: "oneplus_ace5.xml"
+      android_version: "android14"
+      kernel_version: "6.1"
   build-kernel-op13:
-     uses: ./.github/workflows/build.yml
-     secrets: inherit
-     with:
+    needs: [build-kernel-op11, build-kernel-op11r, build-kernel-opopen, build-kernel-opace2, build-kernel-op10t, build-kernel-op10pro, build-kernel-opace2pro]
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
       model: "OP13"
-      soc: "sun perf"
+      soc: "sun"
       branch: "oneplus/sm8750"
       manifest: "JiuGeFaCai_oneplus_13_v.xml"
       android_version: "android15"
       kernel_version: "6.6"
-  build-kernel-opAce5pro:
-     uses: ./.github/workflows/build.yml
-     secrets: inherit
-     with:
-      model: "OPAce_5pro"
-      soc: "sun perf"
+  build-kernel-opace5pro:
+    needs: [build-kernel-op11, build-kernel-op11r, build-kernel-opopen, build-kernel-opace2, build-kernel-op10t, build-kernel-op10pro, build-kernel-opace2pro]
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      model: "OPAce5Pro"
+      soc: "sun"
       branch: "oneplus/sm8750"
       manifest: "JiuGeFaCai_oneplus_ace5_pro_v.xml"
       android_version: "android15"
@@ -37,9 +153,20 @@ jobs:
 
   trigger-release:
     runs-on: ubuntu-latest
-    needs:        
+    needs:
+        - build-kernel-op11
+        - build-kernel-op11r
+        - build-kernel-op12
+        - build-kernel-op13r
+        - build-kernel-opnord4
+        - build-kernel-opopen
+        - build-kernel-opace2
+        - build-kernel-opace2pro
+        - build-kernel-opace5
+        - build-kernel-op10t
+        - build-kernel-op10pro
         - build-kernel-op13
-        - build-kernel-opAce5pro
+        - build-kernel-opace5pro
     if: ${{ inputs.make_release }}
     env:
       REPO_OWNER: TheWildJames
