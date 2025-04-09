@@ -224,7 +224,7 @@ jobs:
           rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
                     
           BUILD_TYPE="gki"
-          BAZEL_ARGS=(--jobs=$(nproc --all) --verbose_failures --lto=thin --sandbox_debug --verbose_failures --subcommands)
+          BAZEL_ARGS=(--jobs=$(nproc --all) --verbose_failures --lto=full --sandbox_debug --verbose_failures --subcommands)
           if [ "${{ inputs.soc }}" == "sun" ]; then
             BUILD_TYPE="perf"
             BAZEL_ARGS+=(-g)
@@ -256,7 +256,7 @@ jobs:
             ./kernel_platform/oplus/bazel/oplus_modules_variant.sh ${{ inputs.soc }} "$BUILD_TYPE" ""
             ./kernel_platform/build_with_bazel.py -t ${{ inputs.soc }} $BUILD_TYPE "${BAZEL_ARGS[@]}" -o "$(pwd)/out"
           else
-            LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} "$BUILD_TYPE"
+            LTO=full ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} "$BUILD_TYPE"
           fi
 
       - name: Copy Images
