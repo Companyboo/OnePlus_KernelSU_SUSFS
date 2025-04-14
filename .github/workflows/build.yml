@@ -201,6 +201,28 @@ jobs:
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TMPFS_POSIX_ACL=y" >> ./common/arch/arm64/configs/gki_defconfig
 
+           # Network
+           echo "CONFIG_IP_NF_TARGET_TTL=y" >> ./common/arch/arm64/configs/gki_defconfig
+           echo "CONFIG_IP6_NF_TARGET_HL=y" >> ./common/arch/arm64/configs/gki_defconfig
+           echo "CONFIG_IP6_NF_MATCH_HL=y" ./common/arch/arm64/configs/gki_defconfig
+            
+           # Scheduler
+            echo "CONFIG_SCHED_CLASS_EXT=y" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_SMP=y" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_CPU_FREQ_GOV_SCHEDUTIL=y" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_MSM_PERFORMANCE=y" ./common/arch/arm64/configs/gki_defconfig
+            
+           # power consumption
+            echo "CONFIG_NO_HZ_IDLE=y" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_PM_SLEEP_SMP=y" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_NO_HZ_IDLE=y" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_PM_SLEEP_SMP=y" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_ENERGY_MODEL=y" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_PM_AUTOSLEEP=y" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_DEBUG_KERNEL=n" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_DYNAMIC_DEBUG=n" ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_DEBUG_INFO=n" ./common/arch/arm64/configs/gki_defconfig
+
       - name: Run sed and perl Commands
         run: |
           echo "Changing to configuration directory: $CONFIG..."
